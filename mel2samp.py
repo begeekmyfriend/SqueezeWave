@@ -27,6 +27,7 @@
 #  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 # *****************************************************************************\
+import glob
 import os
 import random
 import argparse
@@ -67,7 +68,8 @@ class Mel2Samp(torch.utils.data.Dataset):
     def __init__(self, n_audio_channel, training_files, segment_length,
                  filter_length, hop_length, win_length, sampling_rate, mel_fmin,
                  mel_fmax):
-        self.audio_files = files_to_list(training_files)
+        #self.audio_files = files_to_list(training_files)
+        self.audio_files = glob.glob(os.path.join('training_data', '**', '*.wav'), recursive=True)
         random.seed(1234)
         random.shuffle(self.audio_files)
         self.stft = TacotronSTFT(filter_length=filter_length,

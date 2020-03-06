@@ -1,25 +1,25 @@
 {
     "train_config": {
         "fp16_run": true,
-        "output_directory": "checkpoints",
+        "output_directory": "checkpoint_a128_c128",
         "epochs": 100000,
-        "learning_rate": 4e-4,
+        "init_lr": 4e-4,
+        "final_lr": 1e-5,
         "sigma": 1.0,
-        "iters_per_checkpoint": 2000,
-        "batch_size": 96, 
+        "epochs_per_checkpoint": 1,
+        "batch_size": 96,
         "seed": 1234,
         "checkpoint_path": "",
         "with_tensorboard": true
     },
     "data_config": {
-        "training_files": "train_files.txt",
+        "data_path": "voc_mol",
         "segment_length": 16384,
         "sampling_rate": 22050,
         "filter_length": 1024,
         "hop_length": 256,
         "win_length": 1024,
-        "mel_fmin": 0.0,
-        "mel_fmax": 8000.0
+        "mel_pad_val": -5
     },
     "dist_config": {
         "dist_backend": "nccl",
@@ -31,6 +31,7 @@
         "n_audio_channel": 128,
         "n_early_every": 2,
         "n_early_size": 16,
+        "n_classes": 512,
         "WN_config": {
             "n_layers": 8,
             "n_channels": 128,

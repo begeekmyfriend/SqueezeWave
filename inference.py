@@ -27,16 +27,17 @@
 #  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 # *****************************************************************************
+import glob
 import os
-from scipy.io.wavfile import write
+import numpy as np
 import torch
-from mel2samp import files_to_list, MAX_WAV_VALUE
 from denoiser import Denoiser
+from scipy.io.wavfile import write
 
 
-def main(mel_files, squeezewave_path, sigma, output_dir, sampling_rate, is_fp16,
-         denoiser_strength):
-    mel_files = files_to_list(mel_files)
+MAX_WAV_VALUE = 32768
+
+def main(squeezewave_path, sigma, output_dir, sampling_rate, is_fp16, denoiser_strength):
     squeezewave = torch.load(squeezewave_path)['model']
     squeezewave = squeezewave.remove_weightnorm(squeezewave)
     squeezewave.cuda().eval()
@@ -47,34 +48,29 @@ def main(mel_files, squeezewave_path, sigma, output_dir, sampling_rate, is_fp16,
     if denoiser_strength > 0:
         denoiser = Denoiser(squeezewave).cuda()
 
-    for i, file_path in enumerate(mel_files):
+    for i, file_path in enumerate(glob.glob('*.npy')):
         file_name = os.path.splitext(os.path.basename(file_path))[0]
-        mel = torch.load(file_path)
-        mel = torch.autograd.Variable(mel.cuda())
-        mel = torch.unsqueeze(mel, 0)
+        mel = torch.from_numpy(np.load(file_path))
+        mel = torch.unsqueeze(mel, 0).cuda()
         mel = mel.half() if is_fp16 else mel
         with torch.no_grad():
-            audio = squeezewave.infer(mel, sigma=sigma).float()
+            audio = squeezewave.infer(mel, sigma=sigma)
             if denoiser_strength > 0:
                 audio = denoiser(audio, denoiser_strength)
+            print(audio.min(), audio.max())
             audio = audio * MAX_WAV_VALUE
-        audio = audio.squeeze()
-        audio = audio.cpu().numpy()
-        audio = audio.astype('int16')
-        audio_path = os.path.join(
-            output_dir, "{}_synthesis.wav".format(file_name))
-        write(audio_path, sampling_rate, audio)
-        print(audio_path)
+        audio = audio.squeeze().cpu().numpy()
+        audio_path = os.path.join(output_dir, 'SqueezeWave_{}.wav'.format(file_name))
+        write(audio_path, sampling_rate, audio.astype('int16'))
 
 
 if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-f', "--filelist_path", required=True)
     parser.add_argument('-w', '--squeezewave_path',
                         help='Path to squeezewave decoder checkpoint with model')
-    parser.add_argument('-o', "--output_dir", required=True)
+    parser.add_argument('-o', "--output_dir", default='.')
     parser.add_argument("-s", "--sigma", default=1.0, type=float)
     parser.add_argument("--sampling_rate", default=22050, type=int)
     parser.add_argument("--is_fp16", action="store_true")
@@ -83,5 +79,5 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    main(args.filelist_path, args.squeezewave_path, args.sigma, args.output_dir,
+    main(args.squeezewave_path, args.sigma, args.output_dir,
          args.sampling_rate, args.is_fp16, args.denoiser_strength)
