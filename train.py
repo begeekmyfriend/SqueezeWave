@@ -110,7 +110,7 @@ def train(num_gpus, rank, group_name, output_directory, epochs,
         model, optimizer = amp.initialize(model, optimizer, opt_level='O0')
 
     # Load checkpoint if one exists
-    epoch_offset = 1 
+    epoch_offset = 1
     if checkpoint_path != "":
         model, optimizer, epoch_offset = load_checkpoint(checkpoint_path, model,
                                                          optimizer, **squeezewave_config)

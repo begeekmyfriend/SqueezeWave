@@ -19,7 +19,7 @@
         "filter_length": 1024,
         "hop_length": 256,
         "win_length": 1024,
-        "mel_pad_val": -5
+        "mel_pad_val": -12
     },
     "dist_config": {
         "dist_backend": "nccl",
