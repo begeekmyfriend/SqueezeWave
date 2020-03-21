@@ -7,7 +7,7 @@
         "final_lr": 1e-5,
         "sigma": 1.0,
         "epochs_per_checkpoint": 1,
-        "batch_size": 128,
+        "batch_size": 256,
         "seed": 1234,
         "checkpoint_path": "",
         "with_tensorboard": true

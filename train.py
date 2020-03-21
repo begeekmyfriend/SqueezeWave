@@ -107,7 +107,7 @@ def train(num_gpus, rank, group_name, output_directory, epochs,
 
     if fp16_run:
         from apex import amp
-        model, optimizer = amp.initialize(model, optimizer, opt_level='O0')
+        model, optimizer = amp.initialize(model, optimizer, opt_level='O1')
 
     # Load checkpoint if one exists
     epoch_offset = 1
